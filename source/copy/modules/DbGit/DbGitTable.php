@@ -376,14 +376,18 @@ class DbGitTable extends DbGitTableDefs
                 $key = $this->specifyRow($normalKey, array($hash => $normalKey));
                 $record->retrieveByFields($key);
             }
+            if($rowTo === null) {
+                $rowTo = $this->specifyRow($to['data'], array($to['hash'] => $to['key']));
+            }
+            if(empty($from)) {
+                $keyTo = $this->getRowKey($rowTo);
+                $record->retrieveByFields($keyTo);
+            }
             if($record->isLoaded() && $cmd === DbGit::$ADD_CMD) {
-                fwrite(STDERR, "Warning: record will be overwritten, key ".var_export($from['key'], true).PHP_EOL);
+                fwrite(STDERR, "Warning: record will be overwritten, key ".var_export($to['key'], true).PHP_EOL);
             }
             if(!$record->isLoaded() && $cmd === DbGit::$MODIFY_CMD) {
                 throw new Exception("Trying to update non-existing record, key ".var_export($from['key'], true));
-            }
-            if($rowTo === null) {
-                $rowTo = $this->specifyRow($to['data'], array($to['hash'] => $to['key']));
             }
             foreach($tableDefs['fields'] as $field) {
                 $name = $field['name'];
