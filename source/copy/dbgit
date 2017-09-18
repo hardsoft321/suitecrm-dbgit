@@ -1,0 +1,6 @@
+#!/usr/bin/env php
+<?php
+if(!defined('sugarEntry'))define('sugarEntry', true);
+chdir(__DIR__);
+require_once 'include/entryPoint.php';
+require 'modules/DbGit/cli.php';
