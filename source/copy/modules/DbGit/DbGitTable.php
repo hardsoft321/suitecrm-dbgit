@@ -384,7 +384,8 @@ class DbGitTable extends DbGitTableDefs
                 $record->retrieveByFields($keyTo);
             }
             if($record->isLoaded() && $cmd === DbGit::$ADD_CMD) {
-                fwrite(STDERR, "Warning: record will be overwritten, key ".var_export($to['key'], true).PHP_EOL);
+                fwrite(STDERR, "Warning: record already exists, key ".var_export($to['key'], true).PHP_EOL);
+                return;
             }
             if(!$record->isLoaded() && $cmd === DbGit::$MODIFY_CMD) {
                 throw new Exception("Trying to update non-existing record, key ".var_export($from['key'], true));
@@ -402,9 +403,9 @@ class DbGitTable extends DbGitTableDefs
         $tableDefs = $this->getTableDefs();
         if(!empty($tableDefs['module'])) {
             if($tableDefs['module'] == 'relationship') {
-                return new SugarBeanDbGitTableRecord($tableDefs);
+                return new SugarRelDbGitTableRecord($tableDefs);
             }
-            return new SugarRelDbGitTableRecord($tableDefs);
+            return new SugarBeanDbGitTableRecord($tableDefs);
         }
         return new DbGitTableRecord($tableDefs);
     }

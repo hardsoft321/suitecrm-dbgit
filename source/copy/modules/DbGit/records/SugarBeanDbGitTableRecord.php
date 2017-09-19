@@ -18,7 +18,7 @@ class SugarBeanDbGitTableRecord
 
     public function retrieveByFields($row)
     {
-        $this->bean = $this->bean->retrieve_by_string_fields($row);
+        $this->bean->retrieve_by_string_fields($row);
     }
 
     public function isLoaded()
