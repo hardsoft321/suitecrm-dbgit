@@ -33,7 +33,7 @@ class SugarBeanDbGitTableRecord
 
     public function setField($name, $value)
     {
-        $this->bean->$name = $value;
+        $this->bean->$name = $value === null ? '' : $value;
     }
 
     public function save()

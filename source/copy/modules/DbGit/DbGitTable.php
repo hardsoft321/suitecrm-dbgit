@@ -119,7 +119,7 @@ class DbGitTable extends DbGitTableDefs
         return $normalRow;
     }
 
-    protected function specifyRow($normalRow, $searchPath)
+    protected function specifyRow($normalRow, $searchPath, $cmd = '')
     {
         $row = array();
         $tableDefs = $this->getTableDefs();
@@ -159,7 +159,7 @@ class DbGitTable extends DbGitTableDefs
                     if($relatedRecord->isLoaded()) {
                         $row[$name] = $relatedRecord->getId();
                     }
-                    if(isset(DbGit::$deleteDbPlan[$relatedHash.$relatedTableName])) {
+                    if(isset(DbGit::$deleteDbPlan[$relatedHash.$relatedTableName]) && $cmd !== DbGit::$DELETE_CMD) {
                         $row[$name] = '';
                     }
                     if(empty($row[$name])) {
@@ -217,11 +217,26 @@ class DbGitTable extends DbGitTableDefs
             $iCMD = 0; $iFROM = 1; $iTO = 2;
 
             if(!empty($diff[$iFROM])) { //перевычисляем $from
+                if(empty($diff[$iFROM]['data']) && !empty($diff[$iFROM]['key'])) {
+                    $diff[$iFROM]['data'] = $diff[$iFROM]['key'];
+                }
                 $diff[$iFROM]['key'] = $this->getRowKey($diff[$iFROM]['data']);
                 $diff[$iFROM]['hash'] = self::hashArray($diff[$iFROM]['key']);
             }
 
             if(!empty($diff[$iTO])) { //перевычисляем $to
+                if(!empty($diff[$iFROM])) {
+                    foreach($diff[$iFROM]['key'] as $key => $value) {
+                        if(!array_key_exists($key, $diff[$iTO]['data'])) {
+                            $diff[$iTO]['data'][$key] = $value;
+                        }
+                    }
+                    foreach($diff[$iFROM]['data'] as $key => $value) {
+                        if(!array_key_exists($key, $diff[$iTO]['data'])) {
+                            $diff[$iTO]['data'][$key] = $value;
+                        }
+                    }
+                }
                 $diff[$iTO]['key'] = $this->getRowKey($diff[$iTO]['data']);
                 $diff[$iTO]['hash'] = self::hashArray($diff[$iTO]['key']);
             }
@@ -247,7 +262,7 @@ class DbGitTable extends DbGitTableDefs
             $normalKey = $from['key'];
             try {
                 $hash = self::hashArray($normalKey);
-                $key = $this->specifyRow($normalKey, array($hash => $normalKey));
+                $key = $this->specifyRow($normalKey, array($hash => $normalKey), DbGit::$DELETE_CMD);
             }
             catch(RelatedNotFoundException $ex) {
                 $notFoundDbKeys = array_merge($notFoundDbKeys, $ex->notFoundDbKeys);
@@ -392,7 +407,9 @@ class DbGitTable extends DbGitTableDefs
             }
             foreach($tableDefs['fields'] as $field) {
                 $name = $field['name'];
-                $record->setField($name, $rowTo[$name]);
+                if(array_key_exists($name, $rowTo)) {
+                    $record->setField($name, $rowTo[$name]);
+                }
             }
             $record->save();
         }

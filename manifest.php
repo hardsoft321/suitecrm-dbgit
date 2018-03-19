@@ -8,7 +8,7 @@ $manifest = array(
     'is_uninstallable' => true,
     'published_date' => '2017-09-11',
     'type' => 'module',
-    'version' => '1.0.3',
+    'version' => '1.1.0',
 );
 $installdefs = array(
     'id' => 'dbgit',

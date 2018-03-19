@@ -71,9 +71,37 @@ if($command == 'db2file' || $command == 'file2db') {
     }
 
     if(!empty($options['export'])) {
-        echo DbGitFile::exportToPhp(array_values(array_filter($dbPlan, function($tablePlan) {
+        $dbPlan = array_values(array_filter($dbPlan, function($tablePlan) {
             return !empty($tablePlan['diff']);
-        })));
+        }));
+        //очищаем дублируемую информацию
+        foreach($dbPlan as &$tablePlan) {
+            foreach($tablePlan['diff'] as &$diff) {
+                $iCMD = 0; $iFROM = 1; $iTO = 2;
+
+                if(!empty($diff[$iFROM]) && !empty($diff[$iTO])) {
+                    foreach($diff[$iFROM]['data'] as $key => $value) {
+                        if($diff[$iFROM]['data'][$key] === $diff[$iTO]['data'][$key]) {
+                            unset($diff[$iTO]['data'][$key]);
+                        }
+                    }
+                }
+                if(!empty($diff[$iFROM])) {
+                    if(!empty($diff[$iFROM]['data'])) {
+                        unset($diff[$iFROM]['data']);
+                    }
+                    unset($diff[$iFROM]['hash']);
+                }
+                if(!empty($diff[$iTO])) {
+                    unset($diff[$iTO]['hash']);
+                    unset($diff[$iTO]['key']);
+                }
+            }
+            unset($tablePlan['condition']);
+            unset($diff);
+        }
+        unset($tablePlan);
+        echo DbGitFile::exportToPhp($dbPlan);
     }
 
     if(!DbGit::planIsEmpty($dbPlan) && empty($options['export'])) {
