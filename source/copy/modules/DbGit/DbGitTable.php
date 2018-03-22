@@ -434,6 +434,7 @@ class RelatedNotFoundException extends Exception
 
     public function __construct($notFoundDbKeys)
     {
+        parent::__construct("Related Not Found: ".var_export($notFoundDbKeys, true));
         $this->notFoundDbKeys = $notFoundDbKeys;
     }
 }

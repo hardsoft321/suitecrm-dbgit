@@ -24,7 +24,7 @@ class DbGitTableRecord
         $this->relate_values = $relate_values;
         $table = $this->tableDefs['table'];
         $query = "SELECT * FROM $table ".$this->getWhere();
-        $result = $this->db->query($query, false, "Looking For Duplicate Relationship:" . $query);
+        $result = $this->db->query($query, true, "Looking For Duplicate Relationship:" . $query);
         $this->row=$this->db->fetchByAssoc($result);
     }
 
@@ -58,16 +58,17 @@ class DbGitTableRecord
             $relate_values = array_merge($relate_values,$data_values);
             $query = "INSERT INTO $table (". implode(',', array_keys($relate_values)) . ") VALUES (" . "'" . implode("', '", $relate_values) . "')" ;
 
-            $this->db->query($query, false, "Creating Table:" . $query);
+            $this->db->query($query, true, "Creating Table:" . $query);
         }
         else {
             $conds = array();
             foreach($data_values as $key=>$value)
             {
+                //TODO: NULL for date
                 array_push($conds,$key."='".$this->db->quote($value)."'");
             }
             $query = "UPDATE $table SET ". implode(',', $conds)." ".$this->getWhere();
-            $this->db->query($query, false, "Updating Table:" . $query);
+            $this->db->query($query, true, "Updating Table:" . $query);
         }
     }
 
@@ -75,7 +76,7 @@ class DbGitTableRecord
     {
         $table = $this->tableDefs['table'];
         $query = "DELETE FROM $table ".$this->getWhere();
-        $this->db->query($query, false,"Error on record deletion");
+        $this->db->query($query, true,"Error on record deletion");
     }
 
     protected function getWhere()

@@ -108,24 +108,26 @@ if($command == 'db2file' || $command == 'file2db') {
         try {
             $question = $command == 'db2file' ? "Write changes to disk?" : "Update database?";
             $executionConfirmed = cliConfirm($question, $options);
+            if($executionConfirmed) {
+                if(!$silent) {
+                    echo "Execute {$command}...", PHP_EOL;
+                }
+                if($command == 'db2file') {
+                    DbGit::executeDbToFilePlan($dbPlan);
+                }
+                else {
+                    DbGit::executeFileToDbPlan($dbPlan);
+                }
+                if(!$silent) {
+                    echo "Done", PHP_EOL;
+                }
+            }
         }
         catch(Exception $ex) {
+            $error = $ex->getMessage();
+            fwrite(STDERR, $error.PHP_EOL);
             sugar_cleanup();
-            exit;
-        }
-        if($executionConfirmed) {
-            if(!$silent) {
-                echo "Execute {$command}...", PHP_EOL;
-            }
-            if($command == 'db2file') {
-                DbGit::executeDbToFilePlan($dbPlan);
-            }
-            else {
-                DbGit::executeFileToDbPlan($dbPlan);
-            }
-            if(!$silent) {
-                echo "Done", PHP_EOL;
-            }
+            exit(2);
         }
     }
 }
