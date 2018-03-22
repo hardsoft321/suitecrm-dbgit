@@ -79,9 +79,10 @@ class DbGitFile extends DbGitTableDefs
         }
     }
 
-    public static function exportToPhp($var)
+    public static function exportToPhp($var, $comment = '')
     {
         return "<?php
+$comment
 return ".var_export($var, true).";
 ";
     }
