@@ -36,6 +36,9 @@ class DbGitTable extends DbGitTableDefs
             .(isset($tableDefs['condition'])
             ? (!empty($tableDefs['condition']) ? " AND {$tableDefs['condition']}" : "")
             : " AND deleted = 0");
+        if(!empty($tableDefs['orderby'])) {
+            $sql .= " ORDER BY ".$tableDefs['orderby'];
+        }
         $dbRes = $db->query($sql);
         $nonUniqueKeys = array();
         while($row = $db->fetchByAssoc($dbRes ,false)) {
