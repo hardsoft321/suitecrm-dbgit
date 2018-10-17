@@ -38,7 +38,7 @@ class SugarRelDbGitTableRecord
             $where .= " AND $name = '$value' ";
         }
         $query .= $where;
-        $result = $this->db->query($query, false, "Looking For Duplicate Relationship:" . $query);
+        $result = $this->db->query($query, true, "Looking For Duplicate Relationship:" . $query);
         $this->row=$this->db->fetchByAssoc($result);
     }
 
@@ -70,15 +70,19 @@ class SugarRelDbGitTableRecord
             {
                 $relate_values = array_merge($relate_values,$data_values);
             }
-            $query = "INSERT INTO $table (id, ". implode(',', array_keys($relate_values)) . ", date_modified) VALUES ('" . create_guid() . "', " . "'" . implode("', '", $relate_values) . "', ".$date_modified.")" ;
+            $relate_values_quoted = array_map(function($value) {
+                return $value === null ? "NULL" : "'$value'";
+            }, $relate_values);
+            $query = "INSERT INTO $table (id, ". implode(', ', array_keys($relate_values)) . ", date_modified) VALUES ('"
+                . create_guid() . "', " . implode(", ", $relate_values_quoted) . ", ".$date_modified.")" ;
 
-            $this->db->query($query, false, "Creating Relationship:" . $query);
+            $this->db->query($query, true, "Creating Relationship:" . $query);
         }
         else {
             $where = "WHERE deleted = '0'  ";
             foreach($relate_values as $name=>$value)
             {
-                $where .= " AND $name = '$value' ";
+                $where .= " AND $name = " . ($value === NULL ? "NULL" : "'$value'") . " ";
             }
 
             $conds = array();
@@ -87,7 +91,7 @@ class SugarRelDbGitTableRecord
                 array_push($conds,$key."='".$this->db->quote($value)."'");
             }
             $query = "UPDATE $table SET ". implode(',', $conds).",date_modified=".$date_modified." ".$where;
-            $this->db->query($query, false, "Updating Relationship:" . $query);
+            $this->db->query($query, true, "Updating Relationship:" . $query);
         }
     }
 
@@ -97,6 +101,6 @@ class SugarRelDbGitTableRecord
         $date_modified = $this->db->convert("'".$GLOBALS['timedate']->nowDb()."'", 'datetime');
         $id = $this->row['id'];
         $query = "UPDATE $table set deleted=1 , date_modified = $date_modified where id='$id'";
-        $this->db->query($query, false,"Error marking record deleted: ");
+        $this->db->query($query, true,"Error marking record deleted: ");
     }
 }
