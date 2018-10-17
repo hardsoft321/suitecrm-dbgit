@@ -291,7 +291,7 @@ class DbGitTable extends DbGitTableDefs
 
     public function specifySavePlan()
     {
-        $notFoundDbKeys = array();
+        $this->notFoundDbKeys = array();
         foreach($this->diffsToSave as $diff) {
             list($cmd, $from, $to) = $diff;
             $tableDefs = $this->getTableDefs();
@@ -406,7 +406,7 @@ class DbGitTable extends DbGitTableDefs
                 return;
             }
             if(!$record->isLoaded() && $cmd === DbGit::$MODIFY_CMD) {
-                throw new Exception("Trying to update non-existing record, key ".var_export($from['key'], true));
+                fwrite(STDERR, "Warning: Trying to update non-existing record, key ".var_export($from['key'], true).PHP_EOL);
             }
             foreach($tableDefs['fields'] as $field) {
                 $name = $field['name'];
