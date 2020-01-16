@@ -16,5 +16,10 @@ $db_defs['config'] = array(
     'indices' => array(
         array('fields' => array('category', 'name')),
     ),
-    'condition' => "(category = 'info' AND name = 'sugar_version')",
+    'condition' => "(
+           category = 'info' AND name = 'sugar_version'
+        OR category = 'MySettings' AND name = 'tab'
+        OR category = 'MySettings' AND name = 'disable_useredit'
+        OR category = 'MySettings' AND name = 'hide_subpanels'
+    )",
 );

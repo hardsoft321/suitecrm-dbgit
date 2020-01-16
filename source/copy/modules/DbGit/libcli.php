@@ -14,6 +14,9 @@ function getArgvParams($subjectCount, $allowedOptions)
         if($argv[$i][0] == '-') {
             $optPair = explode("=", ltrim($argv[$i], '-'));
             $name = $optPair[0];
+            if(isset($options[$name])) {
+                throw new Exception("Option '$name' is set twice");
+            }
             if(in_array($name.':', $allowedOptions)) {
                 if(count($optPair) < 2) {
                     throw new Exception("Value must be specified for option {$argv[$i]}");

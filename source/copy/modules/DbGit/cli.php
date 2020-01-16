@@ -10,7 +10,8 @@ require_once __DIR__.'/DbGitFile.php';
 
 if(PHP_SAPI !== 'cli') {
     echo "CLI only\n";
-    sugar_die('');
+    sugar_cleanup();
+    exit(1);
 }
 
 $SUBJECT_COUNT = 1;
@@ -29,17 +30,24 @@ try {
 }
 catch(Exception $ex) {
     fwrite(STDERR, $ex->getMessage().PHP_EOL);
-    sugar_die('');
+    sugar_cleanup();
+    exit(1);
 }
 
 $command = reset($keywords);
-if($command == 'db2file' || $command == 'file2db') {
+if($command === 'db2file' || $command === 'file2db' || $command === 'status') {
 
     $silent = false;
     if(!empty($options['export'])) {
         $silent = true;
     }
     DbGit::$ignoreDuplicates = !empty($options['ignore-duplicates']);
+
+    if(empty($options['tables'])) {
+        fwrite(STDERR, "Option --tables is required".PHP_EOL);
+        sugar_cleanup();
+        exit(1);
+    }
 
     if($command == 'file2db') {
         global $current_user;
@@ -50,7 +58,8 @@ if($command == 'db2file' || $command == 'file2db') {
             ));
             if(empty($current_user->id)) {
                 fwrite(STDERR, "User '{$options['login']}' not found.".PHP_EOL);
-                sugar_die('');
+                sugar_cleanup();
+                exit(1);
             }
         }
         else {
@@ -74,7 +83,7 @@ if($command == 'db2file' || $command == 'file2db') {
         $dbPlan = array_values(array_filter($dbPlan, function($tablePlan) {
             return !empty($tablePlan['diff']);
         }));
-        //очищаем дублируемую информацию
+        //clear unnecessary data
         foreach($dbPlan as &$tablePlan) {
             foreach($tablePlan['diff'] as &$diff) {
                 $iCMD = 0; $iFROM = 1; $iTO = 2;
@@ -106,7 +115,17 @@ if($command == 'db2file' || $command == 'file2db') {
         echo DbGitFile::exportToPhp($dbPlan, $comment);
     }
 
-    if(!DbGit::planIsEmpty($dbPlan) && empty($options['export'])) {
+    if($command === 'status') {
+        if (DbGit::planIsEmpty($dbPlan)) {
+            echo "OK".PHP_EOL;
+        }
+        else {
+            fwrite(STDERR, "Got difference between files and DB".PHP_EOL);
+            sugar_cleanup();
+            exit(5);
+        }
+    }
+    elseif(!DbGit::planIsEmpty($dbPlan) && empty($options['export'])) {
         try {
             $question = $command == 'db2file' ? "Write changes to disk?" : "Update database?";
             $executionConfirmed = cliConfirm($question, $options);
@@ -134,7 +153,8 @@ if($command == 'db2file' || $command == 'file2db') {
     }
 }
 else {
-    fwrite(STDERR, "Unknown command $command".PHP_EOL);
-    sugar_die('');
+    fwrite(STDERR, "Unknown command '$command'".PHP_EOL);
+    sugar_cleanup();
+    exit(3);
 }
 sugar_cleanup();
