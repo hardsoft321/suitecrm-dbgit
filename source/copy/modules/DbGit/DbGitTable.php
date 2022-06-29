@@ -406,7 +406,8 @@ class DbGitTable extends DbGitTableDefs
                 return;
             }
             if(!$record->isLoaded() && $cmd === DbGit::$MODIFY_CMD) {
-                fwrite(STDERR, "Warning: Trying to update non-existing record, key ".var_export($from['key'], true).PHP_EOL);
+                fwrite(STDERR, "Warning: non-existing record update is skipped, key ".var_export($from['key'], true).PHP_EOL);
+                return;
             }
             foreach($tableDefs['fields'] as $field) {
                 $name = $field['name'];
